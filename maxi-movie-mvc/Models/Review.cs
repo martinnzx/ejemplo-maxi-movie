@@ -1,4 +1,6 @@
-﻿namespace maxi_movie_mvc.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace maxi_movie_mvc.Models
 {
     public class Review
     {
@@ -7,9 +9,21 @@
         public Pelicula? Pelicula { get; set; }
         public string UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
+
+        [Range(1, 5)]
         public int Rating { get; set; }
+
+        [Required]
+        [StringLength(500)]
         public string Comentario { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)]
         public DateTime FechaReview { get; set; }
+
+        // Row version for concurrency control
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
 
     }
 }
