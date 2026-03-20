@@ -1,4 +1,6 @@
 using maxi_movie_mvc.Data;
+using maxi_movie_mvc.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +13,24 @@ builder.Services.AddDbContext<MovieDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MovieDbContext"))); 
 
 var app = builder.Build();
+
+// Invocar la ejecucion del DbSeeder con un using scope
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<MovieDbContext>();
+        DbSeeder.Seed(context);
+    }
+    catch (Exception ex)
+    {
+        // Log errors or handle them as needed
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred seeding the DB.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
