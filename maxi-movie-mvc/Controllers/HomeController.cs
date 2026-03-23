@@ -1,14 +1,25 @@
+using maxi_movie_mvc.Data;
 using maxi_movie_mvc.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace maxi_movie_mvc.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly ILogger<HomeController> _logger;
+        private readonly MovieDbContext _context;
+
+        public HomeController(ILogger<HomeController> logger, MovieDbContext context)
         {
-            return View();
+            _logger = logger;
+            _context = context;
+        }
+        public async Task<IActionResult> Index()
+        {
+            var peliculas = await _context.Peliculas.ToListAsync();
+            return View(peliculas);
         }
 
         public IActionResult Privacy()
