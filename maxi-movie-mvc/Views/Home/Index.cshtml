@@ -1,23 +1,42 @@
 ﻿@model List<Pelicula>
+@using maxi_movie_mvc.Models
 @{
     ViewData["Title"] = "Home Page";
     int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
     int totalPages = (int)(ViewData["TotalPages"] ?? 1);
     int totalMovies = (int)(ViewData["TotalMovies"] ?? 0);
     string searchTerm = (string)(ViewData["SearchTerm"] ?? "");
+    int? selectedGenreId = (int?)(ViewData["SelectedGenreId"]);
+    var generos = (List<Genero>)(ViewData["Generos"] ?? new List<Genero>());
 }
 
 <main class="flex-grow-1">
     <div class="container py-4">
-        <!-- Barra de búsqueda -->
+        <!-- Barra de búsqueda y filtros -->
         <div class="row g-3 mb-4">
             <div class="col-12">
-                <form method="get" action="@Url.Action("Index", "Home")" class="d-flex gap-2">
-                    <input type="text" name="search" class="form-control" placeholder="Buscar película..." value="@searchTerm">
+                <form method="get" action="@Url.Action("Index", "Home")" class="d-flex gap-2 flex-wrap">
+                    <input type="text" name="search" class="form-control" placeholder="Buscar película..." value="@searchTerm" style="flex: 1; min-width: 200px;">
+
+                    <select name="genreId" class="form-select" style="flex: 1; min-width: 180px;">
+                        <option value="(@selectedGenreId == null || selectedGenreId == 0 ? "selected" : "")>Todos los géneros</option>
+                        @foreach (var genero in generos)
+                        {
+                            @if (selectedGenreId == genero.Id)
+                            {
+                                <option value="@genero.Id" selected>@genero.Descripcion</option>
+                            }
+                            else
+                            {
+                                <option value="@genero.Id">@genero.Descripcion</option>
+                            }
+                        }
+                    </select>
+
                     <button type="submit" class="btn btn-primary">
                         <span class="material-symbols-outlined" style="font-size:1.25rem;">search</span>
                     </button>
-                    @if (!string.IsNullOrWhiteSpace(searchTerm))
+                    @if (!string.IsNullOrWhiteSpace(searchTerm) || selectedGenreId.HasValue)
                     {
                         <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Limpiar</a>
                     }
@@ -28,14 +47,24 @@
         <!-- Información de películas -->
         <div class="row g-3 mb-4 align-items-center">
             <div class="col">
-                @if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    <p class="text-muted mb-0">Mostrando <strong>@Model.Count</strong> de <strong>@totalMovies</strong> películas encontradas para "<strong>@searchTerm</strong>"</p>
+                @{
+                    string filterInfo = "";
+                    if (!string.IsNullOrWhiteSpace(searchTerm) && selectedGenreId.HasValue)
+                    {
+                        var generoSeleccionado = generos.FirstOrDefault(g => g.Id == selectedGenreId);
+                        filterInfo = $" para \"{searchTerm}\" en {generoSeleccionado?.Descripcion}";
+                    }
+                    else if (!string.IsNullOrWhiteSpace(searchTerm))
+                    {
+                        filterInfo = $" para \"{searchTerm}\"";
+                    }
+                    else if (selectedGenreId.HasValue)
+                    {
+                        var generoSeleccionado = generos.FirstOrDefault(g => g.Id == selectedGenreId);
+                        filterInfo = $" en {generoSeleccionado?.Descripcion}";
+                    }
                 }
-                else
-                {
-                    <p class="text-muted mb-0">Mostrando <strong>@Model.Count</strong> de <strong>@totalMovies</strong> películas</p>
-                }
+                <p class="text-muted mb-0">Mostrando <strong>@Model.Count</strong> de <strong>@totalMovies</strong> películas@filterInfo</p>
             </div>
         </div>
 
@@ -65,7 +94,7 @@
         else
         {
             <div class="alert alert-info" role="alert">
-                No se encontraron películas@(!string.IsNullOrWhiteSpace(searchTerm) ? $" para \"{searchTerm}\"" : "").
+                No se encontraron películas@(!string.IsNullOrWhiteSpace(searchTerm) || selectedGenreId.HasValue ? $"{(!string.IsNullOrWhiteSpace(searchTerm) ? $" para \"{searchTerm}\"" : "")}{(selectedGenreId.HasValue ? $" en {generos.FirstOrDefault(g => g.Id == selectedGenreId)?.Descripcion}" : "")}" : "").
             </div>
         }
 
@@ -77,10 +106,10 @@
                     @if (currentPage > 1)
                     {
                         <li class="page-item">
-                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = 1, search = searchTerm })">Primera</a>
+                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = 1, search = searchTerm, genreId = selectedGenreId })">Primera</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = currentPage - 1, search = searchTerm })">Anterior</a>
+                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = currentPage - 1, search = searchTerm, genreId = selectedGenreId })">Anterior</a>
                         </li>
                     }
 
@@ -95,7 +124,7 @@
                         else
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", "Home", new { page = i, search = searchTerm })">@i</a>
+                                <a class="page-link" href="@Url.Action("Index", "Home", new { page = i, search = searchTerm, genreId = selectedGenreId })">@i</a>
                             </li>
                         }
                     }
@@ -103,10 +132,10 @@
                     @if (currentPage < totalPages)
                     {
                         <li class="page-item">
-                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = currentPage + 1, search = searchTerm })">Siguiente</a>
+                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = currentPage + 1, search = searchTerm, genreId = selectedGenreId })">Siguiente</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = totalPages, search = searchTerm })">Última</a>
+                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = totalPages, search = searchTerm, genreId = selectedGenreId })">Última</a>
                         </li>
                     }
                 </ul>

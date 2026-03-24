@@ -16,20 +16,26 @@ namespace maxi_movie_mvc.Controllers
             _logger = logger;
             _context = context;
         }
-        public async Task<IActionResult> Index(int page = 1, string? search = null)
+        public async Task<IActionResult> Index(int page = 1, string? search = null, int? genreId = null)
         {
             const int pageSize = 8;
 
             // Calcular el número de página válido
             if (page < 1) page = 1;
 
-            // Construir la query base
-            var query = _context.Peliculas.AsQueryable();
+            // Construir la query base con Include para el género
+            var query = _context.Peliculas.Include(p => p.Genero).AsQueryable();
 
             // Aplicar filtro de búsqueda si existe
             if (!string.IsNullOrWhiteSpace(search))
             {
                 query = query.Where(p => p.Titulo.Contains(search));
+            }
+
+            // Aplicar filtro de género si existe
+            if (genreId.HasValue && genreId > 0)
+            {
+                query = query.Where(p => p.GeneroId == genreId);
             }
 
             // Obtener el total de películas (después del filtro)
@@ -44,11 +50,16 @@ namespace maxi_movie_mvc.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
+            // Obtener lista de géneros para el dropdown
+            var generos = await _context.Generos.OrderBy(g => g.Descripcion).ToListAsync();
+
             // Pasar información de paginación a la vista
             ViewData["CurrentPage"] = page;
             ViewData["TotalPages"] = totalPages;
             ViewData["TotalMovies"] = totalPeliculas;
             ViewData["SearchTerm"] = search;
+            ViewData["SelectedGenreId"] = genreId;
+            ViewData["Generos"] = generos;
 
             return View(peliculas);
         }
