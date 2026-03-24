@@ -1,31 +1,116 @@
 ﻿@model List<Pelicula>
 @{
     ViewData["Title"] = "Home Page";
+    int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
+    int totalPages = (int)(ViewData["TotalPages"] ?? 1);
+    int totalMovies = (int)(ViewData["TotalMovies"] ?? 0);
+    string searchTerm = (string)(ViewData["SearchTerm"] ?? "");
 }
 
 <main class="flex-grow-1">
     <div class="container py-4">
-        <div class="row g-3 mb-4 align-items-center">
+        <!-- Barra de búsqueda -->
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <form method="get" action="@Url.Action("Index", "Home")" class="d-flex gap-2">
+                    <input type="text" name="search" class="form-control" placeholder="Buscar película..." value="@searchTerm">
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-outlined" style="font-size:1.25rem;">search</span>
+                    </button>
+                    @if (!string.IsNullOrWhiteSpace(searchTerm))
+                    {
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Limpiar</a>
+                    }
+                </form>
+            </div>
         </div>
 
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-4">
-            @foreach (var pelicula in Model)
-            {
-                <div class="col">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="position-relative">
-                            <img alt="@pelicula.Titulo" class="card-img-top" src="@pelicula.PosterUrlPortada">
-                        </div>
-                        <div class="card-body p-2">
-                            <h5 class="card-title fs-6 fw-semibold mb-1">@pelicula.Titulo</h5>
-                            <div class="d-flex align-items-center text-muted small">
-                                    <span class="material-symbols-outlined text-warning me-1" style="font-size:1rem;"> star </span>
-                                    <span>4.5</span>
+        <!-- Información de películas -->
+        <div class="row g-3 mb-4 align-items-center">
+            <div class="col">
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <p class="text-muted mb-0">Mostrando <strong>@Model.Count</strong> de <strong>@totalMovies</strong> películas encontradas para "<strong>@searchTerm</strong>"</p>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Mostrando <strong>@Model.Count</strong> de <strong>@totalMovies</strong> películas</p>
+                }
+            </div>
+        </div>
+
+        <!-- Grid de películas -->
+        @if (Model.Count > 0)
+        {
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-4">
+                @foreach (var pelicula in Model)
+                {
+                    <div class="col">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="position-relative">
+                                <img alt="@pelicula.Titulo" class="card-img-top" src="@pelicula.PosterUrlPortada">
+                            </div>
+                            <div class="card-body p-2">
+                                <h5 class="card-title fs-6 fw-semibold mb-1">@pelicula.Titulo</h5>
+                                <div class="d-flex align-items-center text-muted small">
+                                        <span class="material-symbols-outlined text-warning me-1" style="font-size:1rem;"> star </span>
+                                        <span>4.5</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info" role="alert">
+                No se encontraron películas@(!string.IsNullOrWhiteSpace(searchTerm) ? $" para \"{searchTerm}\"" : "").
+            </div>
+        }
+
+        <!-- Paginación -->
+        @if (totalPages > 1)
+        {
+            <nav class="mt-4" aria-label="Paginación">
+                <ul class="pagination justify-content-center">
+                    @if (currentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = 1, search = searchTerm })">Primera</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = currentPage - 1, search = searchTerm })">Anterior</a>
+                        </li>
+                    }
+
+                    @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                    {
+                        @if (i == currentPage)
+                        {
+                            <li class="page-item active">
+                                <span class="page-link">@i</span>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", "Home", new { page = i, search = searchTerm })">@i</a>
+                            </li>
+                        }
+                    }
+
+                    @if (currentPage < totalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = currentPage + 1, search = searchTerm })">Siguiente</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = totalPages, search = searchTerm })">Última</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
     </div>
 </main>
