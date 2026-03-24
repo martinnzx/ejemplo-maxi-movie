@@ -10,7 +10,36 @@ builder.Services.AddControllersWithViews();
 
 // Incluir DbContext
 builder.Services.AddDbContext<MovieDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MovieDbContext"))); 
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MovieDbContext")));
+
+//add identity
+builder.Services.AddIdentityCore<Usuario>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 3;
+    options.Password.RequireUppercase = false;
+}
+)
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<MovieDbContext>()
+    .AddSignInManager();
+
+//Manejo de la cookie. Lo ponemos en default, pero hay que ponerlo.
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultScheme = IdentityConstants.ApplicationScheme;
+})
+.AddIdentityCookies();
+
+
+builder.Services.ConfigureApplicationCookie(o =>
+{
+    o.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    o.SlidingExpiration = true;
+    o.LoginPath = "/Usuario/Login";
+    o.AccessDeniedPath = "/Usuario/AccessDenied";
+});
 
 var app = builder.Build();
 
@@ -43,6 +72,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();

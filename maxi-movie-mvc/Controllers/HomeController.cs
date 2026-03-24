@@ -64,6 +64,22 @@ namespace maxi_movie_mvc.Controllers
             return View(peliculas);
         }
 
+        public async Task<IActionResult> Details(int id)
+        {
+            var pelicula = await _context.Peliculas
+                .Include(p => p.Genero)
+                .Include(p => p.ListaReviews)
+                .ThenInclude(r => r.Usuario)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (pelicula == null)
+            {
+                return NotFound();
+            }
+
+            return View(pelicula);
+        }
+
         public IActionResult Privacy()
         {
             return View();

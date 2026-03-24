@@ -75,18 +75,20 @@
                 @foreach (var pelicula in Model)
                 {
                     <div class="col">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="position-relative">
-                                <img alt="@pelicula.Titulo" class="card-img-top" src="@pelicula.PosterUrlPortada">
-                            </div>
-                            <div class="card-body p-2">
-                                <h5 class="card-title fs-6 fw-semibold mb-1">@pelicula.Titulo</h5>
-                                <div class="d-flex align-items-center text-muted small">
-                                        <span class="material-symbols-outlined text-warning me-1" style="font-size:1rem;"> star </span>
-                                        <span>4.5</span>
+                        <a asp-action="Details" asp-route-id="@pelicula.Id" class="text-decoration-none">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="position-relative">
+                                    <img alt="@pelicula.Titulo" class="card-img-top" src="@pelicula.PosterUrlPortada">
+                                </div>
+                                <div class="card-body p-2">
+                                    <h5 class="card-title fs-6 fw-semibold mb-1">@pelicula.Titulo</h5>
+                                    <div class="d-flex align-items-center text-muted small">
+                                            <span class="material-symbols-outlined text-warning me-1" style="font-size:1rem;"> star </span>
+                                            <span>4.5</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 }
             </div>
