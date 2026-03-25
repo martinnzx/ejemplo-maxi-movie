@@ -3,6 +3,7 @@ using maxi_movie_mvc.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace maxi_movie_mvc.Controllers
 {
@@ -72,9 +73,11 @@ namespace maxi_movie_mvc.Controllers
                 .ThenInclude(r => r.Usuario)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
-            if (pelicula == null)
+            ViewBag.UserReview = false;
+            if (User?.Identity?.IsAuthenticated == true && pelicula.ListaReviews != null)
             {
-                return NotFound();
+                string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                ViewBag.UserReview = !(pelicula.ListaReviews.FirstOrDefault(r => r.UsuarioId == userId) == null);
             }
 
             return View(pelicula);
