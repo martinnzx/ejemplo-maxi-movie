@@ -1,5 +1,7 @@
 using maxi_movie_mvc.Data;
 using maxi_movie_mvc.Models;
+using maxi_movie_mvc.Service;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,6 +42,10 @@ builder.Services.ConfigureApplicationCookie(o =>
     o.LoginPath = "/Usuario/Login";
     o.AccessDeniedPath = "/Usuario/AccessDenied";
 });
+
+builder.Services.AddScoped<ImagenStorage>();
+builder.Services.Configure<FormOptions>(o => { o.MultipartBodyLengthLimit = 2 * 1024 * 1024; });
+
 
 var app = builder.Build();
 
